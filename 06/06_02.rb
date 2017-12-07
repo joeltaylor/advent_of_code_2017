@@ -9,19 +9,16 @@ class MemoryRedistribution
   end
 
   def redistribute
-    max_value = @blocks.max
-    distribution = [max_value / @divisor, 1].max
-    index_of_max_value = @blocks.index(max_value)
-    new = max_value < @divisor ? 0 : max_value % @divisor
-    @blocks[index_of_max_value] = new
-    next_index = index_of_max_value += 1
+    value, index = @blocks.max
+    index = @blocks.index(value)
+    @blocks[index] = 0
 
-    remaining = max_value - new
-    until remaining <= 0 do
-      next_index = 0 if next_index > @blocks.length - 1
-      @blocks[next_index] += distribution
-      remaining -= distribution
+    next_index = index + 1
+
+    until value == 0 do
+      @blocks[next_index % @blocks.length] += 1
       next_index += 1
+      value -= 1
     end
     @blocks
   end
@@ -44,18 +41,16 @@ end
 
 puts "#"*100
 log = Set.new
-steps = 0
 cycle_count = 0
 seen_state = false
-target = nil
 m = MemoryRedistribution.new(File.open("input.txt").read.split(" ").map(&:to_i))
+
 while true do
   res = m.redistribute
-  steps += 1
-  seen_state = true if log.include? res
-  break if target == res
-  if !target && seen_state
-    target = res.dup
+  if log.include? res
+    break if seen_state
+    seen_state = true
+    log.clear
   end
   cycle_count += 1 if seen_state
   log << res

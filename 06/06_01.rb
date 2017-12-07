@@ -1,5 +1,4 @@
 require "minitest/autorun"
-require 'pry'
 require "set"
 
 class MemoryRedistribution
@@ -9,20 +8,18 @@ class MemoryRedistribution
   end
 
   def redistribute
-    max_value = @blocks.max
-    distribution = [max_value / @divisor, 1].max
-    index_of_max_value = @blocks.index(max_value)
-    new = max_value < @divisor ? 0 : max_value % @divisor
-    @blocks[index_of_max_value] = new
-    next_index = index_of_max_value += 1
+    value, index = @blocks.max
+    index = @blocks.index(value)
+    @blocks[index] = 0
 
-    remaining = max_value - new
-    until remaining <= 0 do
-      next_index = 0 if next_index > @blocks.length - 1
-      @blocks[next_index] += distribution
-      remaining -= distribution
+    next_index = index + 1
+
+    until value == 0 do
+      @blocks[next_index % @blocks.length] += 1
       next_index += 1
+      value -= 1
     end
+
     @blocks
   end
 
@@ -49,10 +46,6 @@ m = MemoryRedistribution.new(File.open("input.txt").read.split(" ").map(&:to_i))
 while true do
   res = m.redistribute
   steps += 1
-  puts "#"*100
-  puts "Step: #{steps}"
-  puts res.inspect
-  puts "#"*100
   break if log.include? res
   log << res
 end
